@@ -17,4 +17,6 @@ env/
 ENV/
 
 Lib/keyvoxtest.py
+
+# pyvenv.cfgファイルを追加
 pyvenv.cfg
