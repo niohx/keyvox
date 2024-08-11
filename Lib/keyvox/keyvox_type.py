@@ -1,3 +1,4 @@
+import datetime
 from typing import TypedDict, List, Optional, Union
 
 class Unit(TypedDict):
@@ -14,8 +15,8 @@ class LockPin(TypedDict):
     pinId: str
     pinCode: str
     qrCode: str
-    sTime: str
-    eTime: str
+    sTime: datetime
+    eTime: datetime
 
 class PinListResponse(TypedDict):
     position: str

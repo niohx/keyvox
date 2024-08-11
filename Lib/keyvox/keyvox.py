@@ -17,7 +17,10 @@ class Keyvox:
         self.base_url = "https://eco.blockchainlock.io/api/eagle-pms/v1/"
 
     def _get_date(self):
-        return datetime.datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
+        stime = datetime.datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
+        print(f"stime:{stime}")
+        return stime
+
 
     def _calculate_digest(self, post_param):
         param_hash = hashlib.sha256(post_param.encode()).digest()
@@ -72,18 +75,14 @@ class Keyvox:
         
         return data
     
-    def getLockPinList(self, lockId: str, sTime: datetime, eTime: datetime, position: str = "200", records: str = "10") -> List[LockPin]:
+    def getLockPinList(self, lockId: str, position: str = "200", records: str = "10") -> List[LockPin]:
         api_name = "getLockPinList"
         
         # datetimeをUNIXタイムスタンプに変換
-        sTime_unix = int(sTime.timestamp())
-        print(f"sTime_unix:{sTime_unix}")
-        eTime_unix = int(eTime.timestamp())
-        
         post_param = json.dumps({
             "lockId": lockId,
-            "sTime": str(sTime_unix),
-            "eTime": str(eTime_unix),
+            # "sTime": sTime_unix,
+            # "eTime": eTime_unix,
             # "position": position,
             "records": records
         })
@@ -92,24 +91,24 @@ class Keyvox:
         
         response = requests.post(url, headers=headers, data=body)
         json_response: ApiResponse = response.json()
-        print(json_response)
         
         if json_response.get("code") != "0" or json_response.get("msg") != "success":
             raise KeyvoxError(f"APIエラー: {json_response.get('msg')}")
         
         data = json_response.get("data")
-        if not isinstance(data, dict) or "pinList" not in data:
+        if isinstance(data, dict) and "pinList" in data:
+            pin_list = []
+            for pin_data in data["pinList"]:
+                # sTimeとeTimeを事前に変換
+                if "sTime" in pin_data:
+                    pin_data["sTime"] = datetime.datetime.fromtimestamp(int(pin_data["sTime"]))
+                if "eTime" in pin_data:
+                    pin_data["eTime"] = datetime.datetime.fromtimestamp(int(pin_data["eTime"]))
+                
+                # LockPinオブジェクトを作成
+                pin = LockPin(**pin_data)
+                pin_list.append(pin)
+            return pin_list
+        else:
             raise KeyvoxError("予期しないレスポンス形式です")
-        
-        return data["pinList"]
 
-
-
-
-
-# 使用例
-# api_key = "Bw0yFwIVWFNRiZapLIgDyFdyIUsI10NvAZNqI3jP"
-# secret_key = "3Nr5EU4JhOTzOTMc1r2PI83lg6E0ZTfS1yX7ynQbeGdcMC6a"
-# instance = Keyvox(api_key, secret_key)
-# units = instance.getUnits()
-# print(json.dumps(units, indent=2))
