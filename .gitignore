@@ -17,3 +17,4 @@ env/
 ENV/
 
 Lib/keyvoxtest.py
+pyenv.cfg
