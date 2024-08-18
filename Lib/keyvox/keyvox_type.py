@@ -38,4 +38,4 @@ class LockPinStatus:
 class ApiResponse:
     code: str
     msg: str
-    data: Union[List[Unit], PinListResponse, LockPinStatus]
+    data: Optional[Union[List[Unit], PinListResponse, LockPinStatus]]

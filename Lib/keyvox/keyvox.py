@@ -60,6 +60,8 @@ class Keyvox:
         }
 
         return headers, post_param
+    def _extract_valid_fields(self, data: Dict[str, Any], cls) -> Dict[str, Any]:
+        return {k: v for k, v in data.items() if k in cls.__annotations__}
 
     def getUnits(self) -> List[Unit]:
         """
@@ -153,8 +155,7 @@ class Keyvox:
         else:
             raise KeyvoxError("予期しないレスポンス形式です")
 
-    def _extract_valid_fields(self, data: Dict[str, Any], cls) -> Dict[str, Any]:
-        return {k: v for k, v in data.items() if k in cls.__annotations__}
+    
 
     def createLockPin(self, unitId: str, pinCode: str, sTime: datetime = None, eTime: datetime = None, targetName: str = None) -> LockPin:
         """
@@ -241,6 +242,53 @@ class Keyvox:
             raise KeyvoxError("予期しないレスポンス形式です")
 
 
+    def deleteLockPin(self, pinId:str)->bool:
+        """
+        指定された暗証番号を削除します。
+        """
+        api_name = "disableLockPin"
+        post_param = {
+            "pinId": pinId
+        }
+        post_param = json.dumps(post_param)
+        headers, body = self._prepare_request(api_name, post_param=post_param)
+        url = f"{self.base_url}{api_name}"
+        response = requests.post(url, headers=headers, data=body)
+        json_response = response.json()
+        if json_response.get("code") != "0" or json_response.get("msg") != "success":
+            raise KeyvoxError(f"APIエラー: {json_response.get('msg')}")
+        return True
+    
+    def changeLockPin(self, pinId:str, pinCode:str=None, targetName:str=None, sTime:datetime=None, eTime:datetime=None)->bool:
+        """
+        指定された暗証番号を変更します。
+        """
+        api_name = "changeLockPin"
+        post_param = {
+            "pinId": pinId
+        }
+        if pinCode:
+            post_param["pinCode"] = pinCode
+        if targetName:
+            post_param["targetName"] = targetName
+        if sTime:
+            post_param["sTime"] = int(sTime.timestamp())
+        if eTime:
+            post_param["eTime"] = int(eTime.timestamp())
+        
+        headers, body = self._prepare_request(api_name, post_param=post_param)
+        url = f"{self.base_url}{api_name}"
+        response = requests.post(url, headers=headers, data=body)
+        json_response = response.json()
+        if json_response.get("code") != "0" or json_response.get("msg") != "success":
+            raise KeyvoxError(f"APIエラー: {json_response.get('msg')}")
+        return True
+
+
+
+
+
 
         
-        
+
+
