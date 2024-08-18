@@ -5,7 +5,9 @@ import base64
 import json
 import requests
 from typing import List, Dict, Any
-from .keyvox_type import Unit, ApiResponse, LockPin
+from .keyvox_type import Unit, ApiResponse, LockPin, LockPinStatus
+
+
 
 
 class KeyvoxError(Exception):
@@ -14,6 +16,13 @@ class KeyvoxError(Exception):
 
 class Keyvox:
     def __init__(self, api_key: str, secret_key: str):
+        """
+        Keyvoxクラスのコンストラクタ。
+
+        Args:
+            api_key (str): APIキー
+            secret_key (str): シークレットキー
+        """
         self.api_key = api_key
         self.secret_key = secret_key
         self.base_url = "https://eco.blockchainlock.io/api/eagle-pms/v1/"
@@ -53,6 +62,15 @@ class Keyvox:
         return headers, post_param
 
     def getUnits(self) -> List[Unit]:
+        """
+        ユニット（部屋）のリストを取得します。
+
+        Returns:
+            List[Unit]: ユニットのリスト
+
+        Raises:
+            KeyvoxError: APIエラーが発生した場合
+        """
         api_name = "getUnits"
         headers, body = self._prepare_request(api_name)
         url = f"{self.base_url}{api_name}"
@@ -77,6 +95,22 @@ class Keyvox:
         return data
 
     def getLockPinList(self, lockId: str, start_time: datetime = None, end_time: datetime = None, position: str = "200", records: str = "10") -> List[LockPin]:
+        """
+        指定されたロックIDに対する暗証番号のリストを取得します。
+
+        Args:
+            lockId (str): ロックID
+            start_time (datetime, optional): 開始時間
+            end_time (datetime, optional): 終了時間
+            position (str, optional): 開始位置。デフォルトは"200"
+            records (str, optional): 取得するレコード数。デフォルトは"10"
+
+        Returns:
+            List[LockPin]: 暗証番号のリスト
+
+        Raises:
+            KeyvoxError: APIエラーが発生した場合
+        """
         api_name = "getLockPinList"
 
         post_param = {
@@ -122,14 +156,30 @@ class Keyvox:
     def _extract_valid_fields(self, data: Dict[str, Any], cls) -> Dict[str, Any]:
         return {k: v for k, v in data.items() if k in cls.__annotations__}
 
-    def createLockPin(self, unitId: str, pinCode: str, sTime: datetime, eTime: datetime, targetName:str)->LockPin:
+    def createLockPin(self, unitId: str, pinCode: str, sTime: datetime = None, eTime: datetime = None, targetName: str = None) -> LockPin:
+        """
+        新しい暗証番号を作成します。
+
+        Args:
+            unitId (str): ユニットID
+            pinCode (str): 暗証番号
+            sTime (datetime, optional): 開始時間。指定しない場合は現在時刻
+            eTime (datetime, optional): 終了時間。指定しない場合は開始時間から1日後
+            targetName (str, optional): ターゲット名。指定しない場合は"BCL太郎"
+
+        Returns:
+            LockPin: 作成された暗証番号の情報
+
+        Raises:
+            KeyvoxError: APIエラーが発生した場合
+        """
         api_name = "createLockPin"
         if not sTime:
             sTime = datetime.now()
         if not eTime:
             eTime = sTime + timedelta(days=1)
         if not targetName:
-            targetName = "テスト太郎"
+            targetName = "BCL太郎"
         post_param = {
             "unitId": unitId,
             "pinCode": pinCode,
@@ -146,6 +196,7 @@ class Keyvox:
             raise KeyvoxError(f"APIエラー: {json_response.get('msg')}")
         
         data = json_response.get("data")
+        # print(data)
         if data:
             if "sTime" in data:
                 data["sTime"] = datetime.fromtimestamp(int(data["sTime"]))
@@ -153,11 +204,43 @@ class Keyvox:
                 data["eTime"] = datetime.fromtimestamp(int(data["eTime"]))
             
             valid_fields = self._extract_valid_fields(data, LockPin)
-            return LockPin(**valid_fields)
+            return LockPin(unitId=unitId, sTime=sTime, eTime=eTime,targetName=targetName, **valid_fields)
         else:
             raise KeyvoxError("予期しないレスポンス形式です")
         
-    def getLockPinStatus(self, lockId:str, pinCode:str)->LockPinStatus:
+    def getLockPinStatus(self, pinId:str)->LockPinStatus:
+        """
+        指定された暗証番号のステータスを取得します。
+
+        Args:
+            pinId (str): 暗証番号ID
+
+        Returns:
+            LockPinStatus: 暗証番号のステータス情報
+
+        Raises:
+            KeyvoxError: APIエラーが発生した場合
+        """
+        api_name = "getLockPinStatus"
+        post_param = {
+            "pinId": pinId
+        }
+        post_param = json.dumps(post_param)
+        url = f"{self.base_url}{api_name}"
+        headers, body = self._prepare_request(api_name, post_param=post_param)
+        response = requests.post(url, headers=headers, data=body)
+        json_response = response.json()
+        if json_response.get("code") != "0" or json_response.get("msg") != "success":
+            raise KeyvoxError(f"APIエラー: {json_response.get('msg')}")
+        
+        data = json_response.get("data")
+        if data:
+            valid_fields = self._extract_valid_fields(data, LockPinStatus)
+            return LockPinStatus(**valid_fields)
+        else:
+            raise KeyvoxError("予期しないレスポンス形式です")
+
+
 
         
         

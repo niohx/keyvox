@@ -2,8 +2,8 @@
 
 Keyvox APIをPythonで扱うためのライブラリです。
 こちらは自分自身で使うためのライブラリですので、
-自分が必要な関数のみを実装しています。
-現在は`getUtils()`と`getLockPinList()`のみ実装しています。
+自身が必要な関数のみを実装しています。
+現在は`getUtils()`,`getLockPinList()`,`getLockPinStatus()`,`createLockPin()`を実装しています。
 
 ご自身のコーディングの際にご活用ください。
 
@@ -26,6 +26,10 @@ kv = Keyvox("API_KEY", "API_SECRET")
 doors = kv.getUtils() # 部屋リストの取得
 
 keys = kv.getLockPinList("rockId") #向こう3日間で払いだされる鍵の一覧を取得
+
+key = kv.createLockPin("lockId", "targetName", "sTime", "eTime") #鍵の発行
+
+status = kv.getLockPinStatus("pinId") #鍵のステータスを取得
 
 
 ```

@@ -14,13 +14,14 @@ class Unit:
 
 @dataclass
 class LockPin:
-    id: str
     pinId: str
+    unitId:Optional[str] = None
     pinCode: Optional[str] = None
     qrCode: Optional[str] = None
     sTime: Optional[datetime.datetime] = None
     eTime: Optional[datetime.datetime] = None
-    category: Optional[str] = None
+    targetName: Optional[str] = None
+    id: Optional[str] = None
 
 @dataclass
 class PinListResponse:
@@ -37,4 +38,4 @@ class LockPinStatus:
 class ApiResponse:
     code: str
     msg: str
-    data: Union[List[Unit], PinListResponse]
+    data: Union[List[Unit], PinListResponse, LockPinStatus]
