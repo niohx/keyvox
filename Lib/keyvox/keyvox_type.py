@@ -1,7 +1,9 @@
 import datetime
-from typing import TypedDict, List, Optional, Union
+from dataclasses import dataclass
+from typing import List, Optional, Union, Dict, Any
 
-class Unit(TypedDict):
+@dataclass
+class Unit:
     unitId: str
     placeName: str
     unitName: str
@@ -10,20 +12,29 @@ class Unit(TypedDict):
     lockIds: List[str]
     placeType: str
 
-class LockPin(TypedDict):
+@dataclass
+class LockPin:
     id: str
     pinId: str
-    pinCode: str
-    qrCode: str
-    sTime: datetime
-    eTime: datetime
+    pinCode: Optional[str] = None
+    qrCode: Optional[str] = None
+    sTime: Optional[datetime.datetime] = None
+    eTime: Optional[datetime.datetime] = None
+    category: Optional[str] = None
 
-class PinListResponse(TypedDict):
+@dataclass
+class PinListResponse:
     position: str
     records: str
     pinList: List[LockPin]
 
-class ApiResponse(TypedDict):
+@dataclass
+class LockPinStatus:
+    pinCode: str
+    status: str
+
+@dataclass
+class ApiResponse:
     code: str
     msg: str
     data: Union[List[Unit], PinListResponse]
