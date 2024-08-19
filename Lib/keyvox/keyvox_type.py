@@ -35,7 +35,20 @@ class LockPinStatus:
     status: str
 
 @dataclass
+class LockStatus:
+    pinType: str
+    relateBattery: str
+    relateType: str
+    battery: str
+    wifi: str
+    status: str
+    reportTime: str
+    moduleId: str
+
+
+
+@dataclass
 class ApiResponse:
     code: str
     msg: str
-    data: Optional[Union[List[Unit], PinListResponse, LockPinStatus]]
+    data: Optional[Union[List[Unit], PinListResponse, LockPinStatus,LockStatus]]

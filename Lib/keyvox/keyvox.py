@@ -5,7 +5,8 @@ import base64
 import json
 import requests
 from typing import List, Dict, Any
-from .keyvox_type import Unit, ApiResponse, LockPin, LockPinStatus
+from .keyvox_type import Unit, ApiResponse, LockPin, LockPinStatus,LockStatus
+
 
 
 
@@ -283,6 +284,51 @@ class Keyvox:
         if json_response.get("code") != "0" or json_response.get("msg") != "success":
             raise KeyvoxError(f"APIエラー: {json_response.get('msg')}")
         return True
+
+    def getLockStatus(self,lockId:str)->LockStatus:
+        """
+        指定されたロックのステータスを取得します。
+        """
+        api_name = "getLockStatus"
+        post_param = {
+            "lockId": lockId
+        }
+        post_param = json.dumps(post_param)
+        headers, body = self._prepare_request(api_name, post_param=post_param)
+        url = f"{self.base_url}{api_name}"
+        response = requests.post(url, headers=headers, data=body)
+        json_response = response.json()
+        data = json_response.get("data")
+        if data:
+            valid_fields = self._extract_valid_fields(data, LockStatus)
+            return LockStatus(**valid_fields)
+        else:
+            raise KeyvoxError("予期しないレスポンス形式です")
+
+    def controlLock(self,lockId:str,controlType:int)->bool:
+        """
+        指定されたロックを制御します。
+        controlTypeは0:施錠、1:開錠である必要があります。
+        """
+        if controlType not in [0, 1]:
+            raise ValueError("controlTypeは0または1である必要があります")
+        
+        api_name = "unlock"
+        post_param ={
+            "lockId":lockId,
+            "flag":controlType
+        }
+        headers,body = self._prepare_request(api_name,post_param=post_param)  
+        url = f"{self.base_url}{api_name}"  
+        response = requests.post(url, headers=headers, data=body)  
+        json_response = response.json()  
+        if json_response.get("code") != "0" or json_response.get("msg") != "success":  
+            raise KeyvoxError(f"APIエラー: {json_response.get('msg')}")  
+        return True  
+
+
+    
+
 
 
 
