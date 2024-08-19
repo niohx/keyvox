@@ -246,6 +246,10 @@ class Keyvox:
     def deleteLockPin(self, pinId:str)->bool:
         """
         指定された暗証番号を削除します。
+        Args:
+            pinId (str): 暗証番号ID
+        Returns:
+            bool: 削除が成功したかどうか
         """
         api_name = "disableLockPin"
         post_param = {
@@ -263,6 +267,14 @@ class Keyvox:
     def changeLockPin(self, pinId:str, pinCode:str=None, targetName:str=None, sTime:datetime=None, eTime:datetime=None)->bool:
         """
         指定された暗証番号を変更します。
+        Args:
+            pinId (str): 暗証番号ID
+            pinCode (str, optional): 暗証番号
+            targetName (str, optional): ターゲット名
+            sTime (datetime, optional): 開始時間
+            eTime (datetime, optional): 終了時間
+        Returns:
+            bool: 変更が成功したかどうか
         """
         api_name = "changeLockPin"
         post_param = {
@@ -288,6 +300,10 @@ class Keyvox:
     def getLockStatus(self,lockId:str)->LockStatus:
         """
         指定されたロックのステータスを取得します。
+        Args:
+            lockId (str): ロックID
+        Returns:
+            LockStatus: ロックのステータス情報
         """
         api_name = "getLockStatus"
         post_param = {
@@ -308,7 +324,11 @@ class Keyvox:
     def controlLock(self,lockId:str,controlType:int)->bool:
         """
         指定されたロックを制御します。
-        controlTypeは0:施錠、1:開錠である必要があります。
+        Args:
+            lockId (str): ロックID
+            controlType (int): 制御タイプ 0:施錠、1:開錠
+        Returns:
+            bool: 制御が成功したかどうか
         """
         if controlType not in [0, 1]:
             raise ValueError("controlTypeは0または1である必要があります")
